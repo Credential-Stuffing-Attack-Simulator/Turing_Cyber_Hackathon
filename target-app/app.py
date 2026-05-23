@@ -39,12 +39,39 @@ DB_PATH = Path(os.getenv("DB_PATH", "/app/data/users.db"))
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 SEED_USERS = [
-    ("alice@example.com",   "Spring2026!"),
-    ("bob@example.com",     "Password123!"),
-    ("charlie@example.com", "Welcome@123"),
-    ("admin@example.com",   "Admin@2026"),
-    ("diana@example.com",   "Diana#999"),
-    ("eve@example.com",     "Passw0rd!"),
+    # Original 6
+    ("alice@example.com",       "Spring2026!"),
+    ("bob@example.com",         "Password123!"),
+    ("charlie@example.com",     "Welcome@123"),
+    ("admin@example.com",       "Admin@2026"),
+    ("diana@example.com",       "Diana#999"),
+    ("eve@example.com",         "Passw0rd!"),
+    # Extended 25 — realistic synthetic users
+    ("john.smith@gmail.com",    "Football2023!"),
+    ("jane.doe@yahoo.com",      "Sunshine99#"),
+    ("michael.jones@hotmail.com","Dragon2024@"),
+    ("sarah.miller@gmail.com",  "Princess1!"),
+    ("david.garcia@outlook.com","Monkey123#"),
+    ("emily.brown@icloud.com",  "Qwerty2025!"),
+    ("chris.wilson@gmail.com",  "Baseball99@"),
+    ("jessica.moore@yahoo.com", "Iloveyou1!"),
+    ("matthew.taylor@gmail.com","Shadow2024#"),
+    ("amanda.anderson@aol.com", "Welcome99!"),
+    ("joshua.thomas@gmail.com", "Summer2024@"),
+    ("ashley.jackson@yahoo.com","Letmein1!"),
+    ("daniel.white@hotmail.com","Trustno1#"),
+    ("brittany.harris@gmail.com","Autumn2023!"),
+    ("james.martin@outlook.com","Admin1234@"),
+    ("megan.thompson@gmail.com","Spring99#"),
+    ("justin.garcia@yahoo.com", "Winter2024!"),
+    ("samantha.lee@icloud.com", "Dragon99@"),
+    ("robert.clark@gmail.com",  "Passw0rd99!"),
+    ("jennifer.lewis@yahoo.com","Flower2024#"),
+    ("william.hall@hotmail.com","Guitar2023@"),
+    ("lisa.allen@gmail.com",    "Ocean2024!"),
+    ("kevin.young@outlook.com", "Thunder99#"),
+    ("rachel.king@gmail.com",   "Sunset2024@"),
+    ("steven.wright@yahoo.com", "Coffee2023!"),
 ]
 
 
