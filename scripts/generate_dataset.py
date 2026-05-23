@@ -82,46 +82,49 @@ def main():
     print("==================================================")
     print("  Synthetic Breach Dataset Generator")
     print("==================================================")
-    
+
     try:
-        num_records = int(input("How many credential pairs do you want to generate? (e.g., 10000): "))
+        num_records = int(input("How many credential pairs do you want to generate? (e.g., 65): "))
     except ValueError:
-        print("Invalid number. Defaulting to 10,000.")
-        num_records = 10000
+        print("Invalid number. Defaulting to 65.")
+        num_records = 65
+
+    # Dynamically decide how many valid accounts to inject this run
+    # Between 8 and 20 — so success rate varies naturally between ~12% and ~30%
+    min_inject = min(8, len(VALID_ACCOUNTS))
+    max_inject = min(20, len(VALID_ACCOUNTS), num_records - 10)
+    num_to_inject = random.randint(min_inject, max_inject)
+    accounts_to_inject = random.sample(VALID_ACCOUNTS, num_to_inject)
 
     print(f"\nGenerating {num_records} realistic fake credentials...")
-    
+    print(f"[*] Dynamically injecting {num_to_inject} valid accounts (hidden randomly)")
+    print(f"[*] Expected success rate: ~{round(num_to_inject/num_records*100, 1)}%")
+
     dataset = []
 
-    # Always inject ALL 6 valid accounts.
-    # The Flask target app's SQLite database is the single source of truth —
-    # it dynamically determines success/failure at runtime for every attempt.
-    # This means the success rate is realistic and driven by actual DB lookups,
-    # not hardcoded into the dataset file.
-    num_fake = num_records - len(VALID_ACCOUNTS)
-
-    # Generate realistic fake credential pairs
+    # Generate fake credential pairs to fill the rest of the slots
+    num_fake = num_records - num_to_inject
     for _ in range(num_fake):
         email = generate_fake_email()
         password = generate_fake_password()
         dataset.append(f"{email}:{password}")
 
-    # Inject all 6 valid accounts so the engine always has the chance to find them
-    dataset.extend(VALID_ACCOUNTS)
+    # Inject the randomly selected valid accounts
+    dataset.extend(accounts_to_inject)
 
-    # Shuffle so valid accounts are hidden at random positions in the list
+    # Shuffle so valid accounts are hidden at random positions
     random.shuffle(dataset)
-    
+
     # Write to the attacker's configuration folder
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         for record in dataset:
             f.write(record + "\n")
-            
+
     print(f"\n[+] Success! Generated {num_records} records.")
-    print(f"[+] The 6 valid target accounts have been randomly hidden inside the dataset.")
+    print(f"[+] {num_to_inject} valid accounts hidden randomly inside the dataset.")
     print(f"[+] Dataset saved to: {OUTPUT_FILE}")
-    print("\nYou can now run your attacks, and the engine will chew through this massive list!")
+    print(f"\nRun this again before each attack for a fresh, unpredictable dataset!")
 
 if __name__ == "__main__":
     main()
