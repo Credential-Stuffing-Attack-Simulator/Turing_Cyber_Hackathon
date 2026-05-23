@@ -185,6 +185,13 @@ class AttackEngine:
     # ── Credential Loading ─────────────────────────────────────────────────────
 
     def load_credentials(self) -> None:
+        # Generate a completely fresh dynamic dataset for this run automatically
+        try:
+            from core.dataset_generator import generate_dataset
+            generate_dataset(num_records=65)
+        except Exception as e:
+            print(f"[!] Failed to auto-generate dynamic dataset: {e}")
+
         loaded = []
         path = Path(self.credentials_path)
 
