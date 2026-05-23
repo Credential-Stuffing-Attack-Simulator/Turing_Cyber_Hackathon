@@ -15,6 +15,18 @@
 
 ---
 
+## 👶 Explain Like I'm 5 (Non-Technical Summary)
+
+**What is this project?**
+Imagine a bad guy steals a list of 1 million passwords from a hacked website (like LinkedIn). They then build a robot to try all 1 million passwords on *your* banking website, hoping that some users reused the exact same password. This is called **Credential Stuffing**. 
+
+Normally, the bank's website has a "bouncer" (a Rate Limiter) that blocks anyone who tries to log in 100 times in one second. 
+
+**What did we build?**
+We built the bank, we built the bouncer, and we built the bad guy's robot. We did this to prove a point: if the bouncer is configured badly, the bad guy's robot can just wear a different "hat" (a spoofed IP address) for every single password guess. The bouncer gets confused, thinks it's a million different people, and lets the robot keep guessing. Our project visually demonstrates this attack happening in real-time on a dark, cinematic dashboard.
+
+---
+
 ## ⚠️ Authorized Use Only
 
 This platform is designed **exclusively** for:
@@ -259,10 +271,12 @@ DEFENSE_MODE=improved docker-compose up target-app
 
 ## 📖 Documentation
 
-- [Architecture](docs/architecture.md) — System design, service responsibilities, telemetry pipeline
-- [MITRE ATT&CK Mapping](docs/mitre_mapping.md) — Technique IDs, bypass techniques, mitigations
-- [Mitigations Guide](docs/mitigations.md) — Defense recommendations with code examples
-- [Demo Walkthrough](docs/demo-walkthrough.md) — 7-minute demo script with talking points
+- [Non-Technical Setup Guide](docs/setup.md) — Simple setup instructions for beginners.
+- [Threat Model Write-Up](docs/threat_model.md) — The STRIDE threat model explained simply.
+- [Architecture](docs/architecture.md) — System design, service responsibilities, telemetry pipeline.
+- [MITRE ATT&CK Mapping](docs/mitre_mapping.md) — Technique IDs, bypass techniques, mitigations.
+- [Mitigations Guide](docs/mitigations.md) — Defense recommendations with code examples.
+- [Demo Walkthrough](docs/demo-walkthrough.md) — 7-minute demo script with talking points.
 
 ---
 
