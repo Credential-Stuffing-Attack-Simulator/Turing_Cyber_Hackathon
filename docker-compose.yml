@@ -155,6 +155,9 @@ services:
     volumes:
       - attack-reports:/app/reports    # Write attack reports here
       - lab-data:/var/log/lab          # Read shared telemetry (optional)
+      # Live-mount the credentials file from host — NO REBUILD NEEDED
+      # Just run generate_dataset.py and the next attack uses the new dataset instantly
+      - ./attacker/configs/credentials.txt:/app/configs/credentials.txt:ro
     depends_on:
       - nginx
     networks:
