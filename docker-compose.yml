@@ -1,0 +1,165 @@
+##############################################################################
+# Cloud-Native Credential Stuffing Attack & Rate Limit Bypass
+# Adversary Simulation Platform — Docker Compose Orchestration
+# ============================================================================
+# Services:
+#   nginx       — Intentionally weak reverse proxy (port 8080)
+#   target-app  — Vulnerable Flask authentication target (internal)
+#   dashboard   — Real-time telemetry dashboard (port 5001)
+#   attacker    — Async credential stuffing engine (CLI, no exposed ports)
+#
+# Usage:
+#   Full platform start:
+#     docker-compose up --build -d nginx target-app dashboard
+#
+#   Run baseline attack (will block):
+#     docker-compose run --rm -e ATTACK_PROFILE=baseline attacker
+#
+#   Run bypass attack (XFF spoofing — will succeed):
+#     docker-compose run --rm -e ATTACK_PROFILE=ip_rotation attacker
+#
+#   Run full evasion attack:
+#     docker-compose run --rm -e ATTACK_PROFILE=full_evasion attacker
+#
+#   View dashboard:
+#     http://localhost:5001
+#
+#   View vulnerable login page:
+#     http://localhost:8080
+##############################################################################
+
+networks:
+  attack-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+volumes:
+  lab-data:
+    driver: local
+  app-data:
+    driver: local
+  attack-reports:
+    driver: local
+
+services:
+
+  # ── Nginx Reverse Proxy ────────────────────────────────────────────────────
+  # Intentionally weak: rate-limits by X-Forwarded-For (bypassable)
+  # Exposes port 8080 externally for demo access
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: csa-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      target-app:
+        condition: service_healthy
+    volumes:
+      - lab-data:/var/log/lab          # Shared telemetry volume
+    networks:
+      attack-net:
+        ipv4_address: 172.20.0.2
+    restart: unless-stopped
+    labels:
+      - "com.csa.service=nginx"
+      - "com.csa.role=proxy"
+
+  # ── Vulnerable Flask Target ────────────────────────────────────────────────
+  # Intentionally weak authentication: in-memory risk scoring + SQLite
+  # DEFENSE_MODE: "weak" (default) or "improved"
+  target-app:
+    build:
+      context: ./target-app
+      dockerfile: Dockerfile
+    container_name: csa-target
+    environment:
+      - DEFENSE_MODE=${DEFENSE_MODE:-weak}
+      - LAB_DATA_DIR=/var/log/lab
+      - DB_PATH=/app/data/users.db
+      - SECRET_KEY=INTENTIONALLY-WEAK-KEY-FOR-DEMO
+    volumes:
+      - lab-data:/var/log/lab          # Shared telemetry (auth_events.jsonl)
+      - app-data:/app/data             # SQLite database persistence
+    networks:
+      attack-net:
+        ipv4_address: 172.20.0.3
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "com.csa.service=target-app"
+      - "com.csa.role=target"
+
+  # ── Real-Time Telemetry Dashboard ─────────────────────────────────────────
+  # Reads shared telemetry volume and serves Chart.js visualization
+  # Access: http://localhost:5001
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: csa-dashboard
+    ports:
+      - "5001:5001"
+    environment:
+      - LAB_DATA_DIR=/var/log/lab
+      - REPORT_DIR=/app/reports
+    volumes:
+      - lab-data:/var/log/lab          # Shared telemetry (read-only)
+      - attack-reports:/app/reports    # Attack report JSON files
+    depends_on:
+      target-app:
+        condition: service_healthy
+    networks:
+      attack-net:
+        ipv4_address: 172.20.0.4
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "com.csa.service=dashboard"
+      - "com.csa.role=monitoring"
+
+  # ── Async Credential Stuffing Attack Engine ───────────────────────────────
+  # Runs on-demand — not a persistent service
+  # Controls: ATTACK_PROFILE, TARGET_URL, ATTACK_ID, CREDENTIAL_FILE
+  #
+  # Profiles:
+  #   baseline     — no bypass (demonstrates blocking)
+  #   ip_rotation  — XFF spoofing bypass
+  #   ua_rotation  — user-agent rotation bypass
+  #   full_evasion — combined XFF + UA + jitter bypass
+  #   slow_burn    — low-and-slow burst evasion
+  attacker:
+    build:
+      context: ./attacker
+      dockerfile: Dockerfile
+    container_name: csa-attacker
+    environment:
+      - TARGET_URL=${TARGET_URL:-http://nginx/}
+      - ATTACK_PROFILE=${ATTACK_PROFILE:-baseline}
+      - ATTACK_ID=${ATTACK_ID:-demo-baseline}
+      - CREDENTIAL_FILE=${CREDENTIAL_FILE:-configs/credentials.txt}
+      - REPORT_DIR=/app/reports
+    volumes:
+      - attack-reports:/app/reports    # Write attack reports here
+      - lab-data:/var/log/lab          # Read shared telemetry (optional)
+    depends_on:
+      - nginx
+    networks:
+      attack-net:
+        ipv4_address: 172.20.0.5
+    labels:
+      - "com.csa.service=attacker"
+      - "com.csa.role=attack-engine"
