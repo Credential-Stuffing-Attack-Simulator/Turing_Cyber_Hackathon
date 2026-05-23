@@ -29,7 +29,11 @@
     *   Point out the dramatically lower "Block Rate" and the spike in "Successful Logins" (the bypass).
     *   Highlight the "Top Spoofed Source IPs" chart showing the rotating addresses.
     *   Point out the "Valid Credentials Found" section in the terminal or report table, demonstrating successful credential stuffing.
-*   **Full Evasion (Optional, if time permits):** Mention that the platform also supports full evasion (rotating User-Agents, adding timing jitter) to bypass more advanced bot detection.
+
+*   **Bypass 2: Burst-Based Rate Limiting:**
+    *   *Narrative:* "The second common rate limiting implementation is burst-based or volume-based limiting. We bypass this using our `slow_burn` evasion profile."
+    *   *Command:* `docker-compose run --rm -e ATTACK_PROFILE=slow_burn attacker`
+    *   *Narrative:* "This profile introduces randomized timing jitter between requests. By keeping the request volume below the burst threshold, the attacker evades detection entirely while still methodically testing credentials."
 
 ## 4. Mitigations and Defense-in-Depth (4:30 - 6:00)
 

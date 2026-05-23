@@ -68,8 +68,8 @@ after 3 consecutive failures from the same session.
 **Description:** The "weak" mode ignores behavioral risk signals entirely.
 
 **Fix:** Enable `DEFENSE_MODE=improved` which activates adaptive blocking
-based on the risk scoring engine (account failure rate, fingerprint tracking,
-header rotation detection).
+based on the risk scoring engine (account failure rate, **device fingerprint tracking**,
+and header rotation detection). This represents an Adaptive Authentication strategy.
 
 ```bash
 docker-compose up -e DEFENSE_MODE=improved target-app
